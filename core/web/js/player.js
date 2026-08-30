@@ -15,7 +15,7 @@
     var TRACKS = [
         { file: 'Luv Letter.mp3', name: 'Luv Letter' },
     ];
-    var MUSIC_DIR = '../../assets/music/';
+    var MUSIC_DIR = 'assets/music/';
     var KEY_INDEX = 'mh-music-index';
     var KEY_PLAYING = 'mh-music-playing';
     var KEY_TIME = 'mh-music-time';

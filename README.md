@@ -9,7 +9,7 @@
 
 ## 预览
 
-![项目预览截图](/assets/images/info.png)
+![项目预览截图](/core/web/assets/images/info.png)
 
 
 ## 关于 Clover-Ink-Bloom
@@ -26,7 +26,7 @@
 git clone https://github.com/kafeic/Clover-Ink-Bloom.git
 cd Clover-Ink-Bloom
 ```
-并在assets/music/存放你的音乐，修改/core/web/js/player.js中的
+并在/core/web/assets/music/存放你的音乐，修改/core/web/js/player.js中的
 var TRACKS = [
     { file: '曲目.mp3', name: '曲目' },
 ];
