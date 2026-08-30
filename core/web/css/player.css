@@ -1,0 +1,268 @@
+/* ============================================================
+   黑胶唱片背景音乐播放器
+   命名空间: vinyl-
+   ============================================================ */
+
+.vinyl-player {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+}
+
+/* ---- 唱片 ---- */
+.vinyl-disc {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(circle at 30% 25%, #3a3a3f, #111114 55%, #050506 100%);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.vinyl-disc:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45); }
+
+/* 唱片纹路层：旋转的主体（标签保持竖直可读） */
+.vinyl-disc .vinyl-grooves {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at center,
+      rgba(255, 255, 255, 0.10) 0px,
+      rgba(255, 255, 255, 0.10) 1px,
+      transparent 1px,
+      transparent 5px),
+    radial-gradient(circle at 32% 26%, rgba(255,255,255,0.16), transparent 55%);
+  animation: vinyl-spin 12s linear infinite;
+  animation-play-state: paused;
+  will-change: transform;
+}
+.vinyl-player.playing .vinyl-grooves { animation-play-state: running; }
+
+/* 中心标签 */
+.vinyl-disc .vinyl-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+@keyframes vinyl-spin { to { transform: rotate(360deg); } }
+
+/* ---- 唱针 ---- */
+.vinyl-tonearm {
+  position: absolute;
+  top: 2px;
+  right: 26px;
+  width: 40px;
+  height: 10px;
+  transform-origin: right center;
+  transform: rotate(-24deg);
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+.vinyl-tonearm::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d9d9de;
+  box-shadow: inset 0 -1px 2px rgba(0,0,0,0.4);
+}
+.vinyl-tonearm::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #c9c9cf, #8a8a90);
+  transform: rotate(24deg);
+  transform-origin: left center;
+}
+.vinyl-player.playing .vinyl-tonearm { transform: rotate(-6deg); }
+
+/* ---- 展开面板 ----
+   绝对定位、默认隐藏（visibility:hidden），
+   平时只显示小唱片 div，不占布局空间；hover / focus / .panel-open 时展开 */
+.vinyl-panel {
+  position: absolute;
+  left: calc(100% + 12px);
+  bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 200px;
+  padding: 12px 14px;
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+.vinyl-track-name {
+  width: 100%;
+  font-size: 12px;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-serif);
+  --marquee-dist: -100%;
+}
+/* 超长曲名滚动：用 text-indent 在盒内滚动文本 */
+.vinyl-track-name.marquee {
+  text-overflow: clip;
+  animation: vinyl-marquee 8s linear infinite;
+}
+@keyframes vinyl-marquee {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(0); }
+    80% { transform: translateX(var(--marquee-dist, -100%)); }
+    100% { transform: translateX(var(--marquee-dist, -100%)); }
+}
+
+.vinyl-controls { display: flex; gap: 6px; align-items: center; }
+.vinyl-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.vinyl-btn:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+.vinyl-btn-play { width: 38px; height: 38px; font-size: 14px; background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+.vinyl-btn-play:hover { filter: brightness(1.1); }
+
+/* 音量滑块 */
+.vinyl-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.vinyl-vol-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  font-size: 11px;
+}
+.vinyl-vol-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+.vinyl-volume {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--card-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.vinyl-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+}
+.vinyl-volume::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+}
+
+/* 桌面端：hover 展开面板 */
+@media (hover: hover) {
+  .vinyl-player:hover .vinyl-panel,
+  .vinyl-player:focus-within .vinyl-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+}
+
+/* 触屏端：通过 .panel-open 类展开（由 JS 控制），面板浮在唱片上方 */
+@media (hover: none) {
+  .vinyl-panel {
+    left: auto;
+    right: 0;
+    bottom: calc(100% + 10px);
+    transform: translateY(10px);
+  }
+  .vinyl-player.panel-open .vinyl-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+/* 播放状态提示色（可选）：播放时唱片外圈高亮 */
+.vinyl-player.playing .vinyl-disc { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 2px var(--accent-color); }
+
+/* ---- 响应式 ---- */
+@media (max-width: 480px) {
+  .vinyl-player { left: 12px; bottom: 12px; padding: 10px; }
+  .vinyl-disc { width: 58px; height: 58px; }
+  .vinyl-panel { width: 180px; }
+}

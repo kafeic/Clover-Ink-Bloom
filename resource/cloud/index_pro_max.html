@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积雨云V1.0修改增强版本-kafeic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0a0a12;
+            overflow: hidden;
+        }
+        /* 全屏闪电照亮效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            z-index: 10;
+            animation: lightning-bg 5s infinite;
+            pointer-events: none;
+        }
+        @keyframes lightning-bg {
+            0%, 100% { opacity: 0; }
+            4% { opacity: 0.2; }
+            5% { opacity: 0; }
+            6% { opacity: 0.12; }
+            7% { opacity: 0; }
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+        }
+        .container .cloud {
+            position: relative;
+            width: 320px;
+            height: 100px;
+            border-radius: 100px;
+            animation: animateCloud 5s infinite;
+            will-change: filter;
+        }
+        @keyframes animateCloud {
+            0%, 100% {
+                filter: drop-shadow(8px 8px 0 #0001) brightness(1);
+            }
+            4% {
+                filter: drop-shadow(8px 8px 0 #0001) brightness(4) drop-shadow(0 0 40px rgba(100, 220, 255, 0.8)) drop-shadow(0 0 80px rgba(60, 180, 255, 0.5));
+            }
+            5% {
+                filter: drop-shadow(8px 8px 0 #0001) brightness(1);
+            }
+            6% {
+                filter: drop-shadow(8px 8px 0 #0001) brightness(6) drop-shadow(0 0 60px rgba(100, 220, 255, 1)) drop-shadow(0 0 120px rgba(60, 180, 255, 0.7));
+            }
+            7% {
+                filter: drop-shadow(8px 8px 0 #0001) brightness(1);
+            }
+        }
+        .container .cloud::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 40px;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: #484f59;
+            box-shadow: 90px -10px 0 30px #484f59;
+        }
+        .container .cloud::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #484f59;
+            border-radius: 100px;
+            z-index: 1000;
+        }
+        /* 闪电 SVG 容器 */
+        .lightning-svg {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 180px;
+            z-index: 999;
+            pointer-events: none;
+        }
+        /* 主闪电路径 */
+        .bolt-main {
+            fill: none;
+            stroke: #c8e6ff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: url(#glow);
+            opacity: 0;
+            transform-origin: top center;
+            animation: flash-main 5s steps(1) infinite;
+            will-change: opacity;
+        }
+        /* 左侧分叉 */
+        .bolt-branch1 {
+            fill: none;
+            stroke: #a0d0ff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: url(#glow);
+            opacity: 0;
+            transform-origin: top center;
+            animation: flash-branch1 5s steps(1) infinite;
+            will-change: opacity;
+        }
+        /* 右侧分叉 */
+        .bolt-branch2 {
+            fill: none;
+            stroke: #a0d0ff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: url(#glow);
+            opacity: 0;
+            transform-origin: top center;
+            animation: flash-branch2 5s steps(1) infinite;
+            will-change: opacity;
+        }
+        /* 主闪电动画 - 双闪效果 */
+        @keyframes flash-main {
+            0%, 100% { opacity: 0; transform: scaleY(0); }
+            4% { opacity: 1; transform: scaleY(1); }
+            5% { opacity: 0; transform: scaleY(1); }
+            6% { opacity: 1; transform: scaleY(1); }
+            7% { opacity: 0; transform: scaleY(1); }
+        }
+        /* 左分叉动画 - 稍晚出现 */
+        @keyframes flash-branch1 {
+            0%, 100% { opacity: 0; transform: scaleY(0); }
+            4.5% { opacity: 0; transform: scaleY(0); }
+            5% { opacity: 0.8; transform: scaleY(1); }
+            6% { opacity: 0; transform: scaleY(1); }
+            6.5% { opacity: 0.8; transform: scaleY(1); }
+            7% { opacity: 0; transform: scaleY(1); }
+        }
+        /* 右分叉动画 - 更晚出现 */
+        @keyframes flash-branch2 {
+            0%, 100% { opacity: 0; transform: scaleY(0); }
+            5% { opacity: 0; transform: scaleY(0); }
+            5.5% { opacity: 0.7; transform: scaleY(1); }
+            6.5% { opacity: 0; transform: scaleY(1); }
+        }
+        /* 雨滴样式 */
+        .container .cloud .drop {
+            position: absolute;
+            top: 40px;
+            background: linear-gradient(to bottom, transparent, #05a2eb);
+            width: 2px;
+            height: 10px;
+            border-radius: 0 0 2px 2px;
+            animation: animate 2s linear infinite;
+            will-change: transform, opacity;
+        }
+        @keyframes animate {
+            0% {
+                transform: translateY(0) scaleY(1);
+                opacity: 1;
+            }
+            70% {
+                transform: translateY(320px) scaleY(1);
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(320px) scaleY(0.2);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(320px) scaleY(0) scaleX(15);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cloud">
+            <!-- SVG 闪电 -->
+            <svg class="lightning-svg" viewBox="0 0 200 300">
+                <defs>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="4" result="blur1"/>
+                        <feGaussianBlur stdDeviation="10" result="blur2"/>
+                        <feMerge>
+                            <feMergeNode in="blur2"/>
+                            <feMergeNode in="blur1"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <!-- 主闪电路径：锯齿形从上到下 -->
+                <path class="bolt-main" d="M100,0 L88,45 L112,55 L78,120 L105,130 L68,210 L95,218 L80,300"/>
+                <!-- 左侧分叉 -->
+                <path class="bolt-branch1" d="M78,120 L55,155 L68,162 L40,210"/>
+                <!-- 右侧分叉 -->
+                <path class="bolt-branch2" d="M105,130 L132,162 L118,170 L148,215"/>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        const MAX_DROPS = 70;
+        const cloud = document.querySelector('.cloud');
+        const container = document.querySelector('.container');
+        let cloudWidth = 320;
+
+        // 响应式缩放
+        function handleResize() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            // 以 600px 宽度为基准，小于时按比例缩小
+            const scale = Math.min(1, vw / 600, vh / 500);
+            container.style.transform = 'scale(' + scale + ')';
+            container.style.transformOrigin = 'center center';
+            // 更新雨滴分布范围（缩放后的实际云宽）
+            cloudWidth = Math.floor(320 * scale);
+        }
+
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 100);
+        });
+        handleResize();
+
+        function rain() {
+            // 限制最大雨滴数，防止 DOM 节点堆积
+            if (cloud.querySelectorAll('.drop').length >= MAX_DROPS) return;
+
+            let e = document.createElement('div');
+            let left = Math.floor(Math.random() * (cloudWidth - 10));
+            let width = Math.random() * 5;
+            let height = Math.random() * 50;
+            let duration = Math.random() * 0.5;
+
+            e.classList.add('drop');
+            cloud.appendChild(e);
+            e.style.left = left + 'px';
+            e.style.width = 0.5 + width + 'px';
+            e.style.height = 0.5 + height + 'px';
+            e.style.animationDuration = (1 + duration) + 's';
+
+            setTimeout(() => {
+                if (e.parentNode) e.parentNode.removeChild(e);
+            }, 2000);
+        }
+
+        setInterval(rain, 20);
+    </script>
+</body>
+</html>

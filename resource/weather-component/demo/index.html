@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天气组件卡片 Demo</title>
+  <style>
+    /* 页面基础样式 */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #1a1a2e;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    /* 卡片容器 */
+    .weather-card {
+      width: 90%;
+      max-width: 600px;
+      height: 500px;
+      background: #2d3561;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* 天气组件容器，占满整个卡片 */
+    #weather {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* 控制面板 */
+    .panel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 10px;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .panel button {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      background: transparent;
+      color: #ccc;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .panel button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .panel button.active {
+      background: rgba(100, 220, 255, 0.2);
+      border-color: rgba(100, 220, 255, 0.5);
+      color: #64dcff;
+    }
+
+    /* 状态显示 */
+    .status {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-card">
+    <div id="weather"></div>
+    <div class="city_tree" id="tree">当前城市：大树星-树干层C区</div>
+    <div class="status" id="status">当前：雷暴</div>
+    <div class="panel">
+      <button class="active" data-scene="thunderstorm">⛈️ 雷暴</button>
+      <button data-scene="snow">❄️ 暴雪</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // 注意：这里的路径需要根据你的实际文件结构调整
+    import { WeatherComponent, ThunderstormScene, SnowScene, ManualCityProvider } from '../index.js';
+
+    const weatherContainer = document.querySelector('#weather');
+    const statusEl = document.getElementById('status');
+    const buttons = document.querySelectorAll('.panel button');
+
+    // 1. 创建城市提供者 (使用手动指定)
+    const cityProvider = new ManualCityProvider('大树星-树干层C区', 'thunderstorm');
+
+    // 2. 创建天气组件
+    const weather = new WeatherComponent(weatherContainer);
+
+    // 3. 注册场景
+    weather.registerScene('thunderstorm', ThunderstormScene);
+    weather.registerScene('snow', SnowScene);
+
+    // 4. 初始化
+    async function init() {
+      const { weather: initialWeather } = await cityProvider.getWeather();
+      weather.switchTo(initialWeather);
+    }
+    init();
+
+    // 5. 按钮事件
+    buttons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const type = btn.dataset.scene;
+        // 更新城市提供者的天气状态
+        cityProvider.setWeather(type);
+
+        weather.switchTo(type);
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statusEl.textContent = `当前：${btn.textContent}`;
+      });
+    });
+  </script>
+</body>
+</html>

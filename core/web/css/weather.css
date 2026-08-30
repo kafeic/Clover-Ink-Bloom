@@ -1,0 +1,234 @@
+/* ============================================================
+   天气组件  - 命名空间: weather-anim-
+   天气组件 - 悬浮卡片
+   ============================================================ */
+
+
+/* --- 悬浮卡片（竖排）--- */
+.weather-widget {
+  position: fixed;
+  top: 74px;                 /* 导航栏（高约56px）下方 */
+  right: 20px;
+  z-index: 90;               /* 低于导航栏(100)，高于正文 */
+  display: flex;
+  flex-direction: column;    /* 上：位置文字；下：雷雨云 */
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  /* 雨滴与落地涟漪共用的颜色 */
+  --rain-color: #265774;
+}
+
+/* 上方：当前位置 */
+.weather-widget .weather-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.weather-widget .weather-city {
+  color: var(--text-color);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* 下方：天气图标容器*/
+.weather-widget .weather-anim-container {
+  position: relative;
+  width: 120px;               /* 等比缩放 */
+  aspect-ratio: 200 / 190;
+  overflow: hidden;          /* 裁掉超出容器的雨滴/闪电 */
+  flex-shrink: 0;
+}
+
+/* SVG 撑满容器，比例由 viewBox 决定 */
+.weather-anim-lightning-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- 云体：闪电瞬间整体增亮 --- */
+.weather-cloud {
+  animation: weather-cloud-glow 5s steps(1) infinite;
+  will-change: filter;
+}
+
+@keyframes weather-cloud-glow {
+  0%, 100% { filter: brightness(1); }
+  4% {
+    filter: brightness(2.4)
+            drop-shadow(0 0 3px rgba(100, 220, 255, 0.8))
+            drop-shadow(0 0 6px rgba(60, 180, 255, 0.5));
+  }
+  5% { filter: brightness(1); }
+  6% {
+    filter: brightness(3)
+            drop-shadow(0 0 4px rgba(100, 220, 255, 1))
+            drop-shadow(0 0 8px rgba(60, 180, 255, 0.7));
+  }
+  7% { filter: brightness(1); }
+}
+
+/* --- 闪电：主闪 + 左右分叉 --- */
+.weather-anim-bolt-main,
+.weather-anim-bolt-branch1,
+.weather-anim-bolt-branch2 {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: url(#weather-glow);
+  opacity: 0;
+  /* SVG 元素做 scaleY 需要 fill-box，使缩放以闪电自身顶部为原点 */
+  transform-box: fill-box;
+  transform-origin: center top;
+  will-change: opacity, transform;
+}
+
+.weather-anim-bolt-main {
+  stroke: #c8e6ff;
+  stroke-width: 2.4;
+  animation: weather-anim-flash-main 5s steps(1) infinite;
+}
+
+.weather-anim-bolt-branch1 {
+  stroke: #a0d0ff;
+  stroke-width: 1.8;
+  animation: weather-anim-flash-branch1 5s steps(1) infinite;
+}
+
+.weather-anim-bolt-branch2 {
+  stroke: #a0d0ff;
+  stroke-width: 1.8;
+  animation: weather-anim-flash-branch2 5s steps(1) infinite;
+}
+
+@keyframes weather-anim-flash-main {
+  0%, 100% { opacity: 0; transform: scaleY(0); }
+  4% { opacity: 1; transform: scaleY(1); }
+  5% { opacity: 0; transform: scaleY(1); }
+  6% { opacity: 1; transform: scaleY(1); }
+  7% { opacity: 0; transform: scaleY(1); }
+}
+
+@keyframes weather-anim-flash-branch1 {
+  0%, 100% { opacity: 0; transform: scaleY(0); }
+  4.5% { opacity: 0; transform: scaleY(0); }
+  5% { opacity: 0.85; transform: scaleY(1); }
+  6% { opacity: 0; transform: scaleY(1); }
+  6.5% { opacity: 0.85; transform: scaleY(1); }
+  7% { opacity: 0; transform: scaleY(1); }
+}
+
+@keyframes weather-anim-flash-branch2 {
+  0%, 100% { opacity: 0; transform: scaleY(0); }
+  5% { opacity: 0; transform: scaleY(0); }
+  5.5% { opacity: 0.8; transform: scaleY(1); }
+  6.5% { opacity: 0; transform: scaleY(1); }
+}
+
+/* --- 雨滴（SVG <line>，由 weather.js 生成）
+   颜色与落地涟漪共用变量 --rain-color。 */
+.weather-anim-drop {
+  stroke: var(--rain-color);             /* 雨滴颜色（#265774） */
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  opacity: 0.95;
+  transform-box: fill-box;
+  transform-origin: 0 0;
+  animation-name: weather-anim-drop-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes weather-anim-drop-fall {
+  0% { transform: translateY(0); opacity: 0.9; }
+  70% { transform: translateY(76px); opacity: 0.9; }
+  85% { transform: translateY(86px); opacity: 0.5; }
+  100% { transform: translateY(92px); opacity: 0; }
+}
+
+/* --- 雨滴落地水纹（涟漪）---
+   注：SVG <line> 无法用 scaleX 实现"压扁铺开"，故用椭圆水纹。 */
+.weather-anim-splash {
+  fill: var(--rain-color);
+  opacity: 0.7;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: weather-anim-splash 0.6s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes weather-anim-splash {
+  0%   { transform: scale(0.3, 0.4); opacity: 0.7; }
+  60%  { transform: scale(2.2, 0.6); opacity: 0.35; }
+  100% { transform: scale(3.2, 0.7); opacity: 0; }
+}
+
+/* 组件整体闪电照亮背景 */
+.weather-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  z-index: 10;
+  border-radius: 8px;
+  pointer-events: none;
+  animation: weather-anim-lightning-bg 5s infinite;
+}
+
+@keyframes weather-anim-lightning-bg {
+  0%, 100% { opacity: 0; }
+  4% { opacity: 0.12; }
+  5% { opacity: 0; }
+  6% { opacity: 0.09; }
+  7% { opacity: 0; }
+}
+
+/* --- 响应式 --- */
+@media (max-width: 768px) {
+  .weather-widget {
+    top: 66px;
+    right: 10px;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+  .weather-widget .weather-anim-container {
+    width: 58px;
+  }
+  .weather-widget .weather-city {
+    font-size: 11px;
+  }
+  .weather-widget .weather-city-img {
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .weather-widget {
+    top: 62px;
+    right: 8px;
+    gap: 5px;
+    padding: 6px 10px;
+  }
+  .weather-widget .weather-anim-container {
+    width: 48px;
+  }
+  .weather-widget .weather-city {
+    font-size: 10px;
+  }
+  .weather-widget .weather-city-img {
+    height: 12px;
+  }
+}

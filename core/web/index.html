@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>墨花·文学茶话会 | Ink Blossom Literary Salon</title>
+    <link rel="icon" type="image/svg+xml" href="../../assets/icons/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/weather.css">
+    <link rel="stylesheet" href="css/player.css">
+    <script src="js/rainyday.js" type="text/javascript"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-theme="light" data-lang="zh">
+    <!-- 雨滴背景 -->
+    <img id="rainy-bg" src="images/forest.jpg" style="display: none;" />
+    <div id="rainy-container">
+        <canvas id="rainy-canvas" width="1920" height="1080"></canvas>
+    </div>
+
+    <!-- 攀枝花（装饰层，预留占位）
+         TODO: "攀枝花"SVG
+    -->
+
+    <header class="navbar glass-nav">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                    <!-- 1. 背景光晕 -->
+                    <path d="M50 10 C30 10 10 30 10 50 C10 75 30 90 50 90 C70 90 90 75 90 50 C90 30 70 10 50 10 Z" fill="currentColor" opacity="0.1"/>
+
+                    <!-- 2. 5片花瓣（通过 rotate 旋转 72度 均匀分布） -->
+                    <g class="logo-petal">
+                        <path d="M50 50 Q35 30 50 10 Q65 30 50 50 Z" />
+                        <path d="M50 50 Q35 30 50 10 Q65 30 50 50 Z" transform="rotate(72 50 50)" />
+                        <path d="M50 50 Q35 30 50 10 Q65 30 50 50 Z" transform="rotate(144 50 50)" />
+                        <path d="M50 50 Q35 30 50 10 Q65 30 50 50 Z" transform="rotate(216 50 50)" />
+                        <path d="M50 50 Q35 30 50 10 Q65 30 50 50 Z" transform="rotate(288 50 50)" />
+                    </g>
+
+                    <!-- 3. 中心花蕊 -->
+                    <circle cx="50" cy="50" r="6" fill="var(--bg-color)"/>
+                </svg>
+                <span class="logo-text">
+                    <span class="t-zh">墨花社</span>
+                    <span class="t-en">Ink Blossom</span>
+                </span>
+            </a>
+            <nav class="nav-links">
+                <a href="#hero"><span class="t-zh">首页</span><span class="t-en">Home</span></a>
+                <a href="#about"><span class="t-zh">关于墨花</span><span class="t-en">About</span></a>
+                <a href="#wiki">WIKI</a>
+                <a href="ai.html">AI for Literature</a>
+                <a href="#join"><span class="t-zh">加入我们</span><span class="t-en">Join</span></a>
+            </nav>
+
+            <div class="nav-controls">
+                <button id="menu-toggle" class="icon-btn menu-toggle" aria-label="菜单" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+                <button id="lang-toggle" class="icon-btn">EN</button>
+                <button id="theme-toggle" class="icon-btn">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 天气组件 -->
+    <div class="weather-widget">
+        <div class="weather-info">
+            <span class="weather-city">当前位置·大树星-树干层-C区</span>
+        </div>
+        <div class="weather-anim-container">
+            <!-- 内联 SVG:云 + 闪电 + 雨滴 -->
+            <svg class="weather-anim-lightning-svg" viewBox="0 0 200 190" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+                <defs>
+                    <filter id="weather-glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur1"/>
+                        <feGaussianBlur stdDeviation="7" result="blur2"/>
+                        <feMerge>
+                            <feMergeNode in="blur2"/>
+                            <feMergeNode in="blur1"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <linearGradient id="weather-rain-grad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#05a2eb" stop-opacity="0"/>
+                        <stop offset="1" stop-color="#05a2eb"/>
+                    </linearGradient>
+                </defs>
+                <!-- 雷雨云云体 -->
+                <g class="weather-cloud">
+                    <rect x="28" y="55" width="144" height="42" rx="21" fill="#484f59"/>
+                    <circle cx="70" cy="54" r="28" fill="#484f59"/>
+                    <circle cx="105" cy="40" r="34" fill="#484f59"/>
+                    <circle cx="146" cy="56" r="26" fill="#484f59"/>
+                </g>
+                <!-- 闪电：主闪 + 左右分叉 -->
+                <path class="weather-anim-bolt-main" d="M100,90 L88,116 L108,124 L80,170"/>
+                <path class="weather-anim-bolt-branch1" d="M78,124 L58,152 L70,158 L48,184"/>
+                <path class="weather-anim-bolt-branch2" d="M108,124 L132,152 L120,160 L146,186"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- 移动端汉堡菜单（≤768px 生效） -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+    <nav class="mobile-menu" id="mobile-menu" aria-label="移动端导航">
+        <a href="#hero"><span class="t-zh">首页</span><span class="t-en">Home</span></a>
+        <a href="#about"><span class="t-zh">关于墨花</span><span class="t-en">About</span></a>
+        <a href="#wiki">WIKI</a>
+        <a href="ai.html">AI for Literature</a>
+        <a href="#join"><span class="t-zh">加入我们</span><span class="t-en">Join</span></a>
+    </nav>
+
+    <main class="content-layer">
+        <section id="hero" class="section hero-section">
+            <div class="container">
+                <h1 class="hero-title reveal" id="typewriter-target">
+                    <span class="t-zh">欢迎来到「墨花·文学茶话会」</span>
+                    <span class="t-en">Welcome to Ink Blossom Literary Salon</span>
+                </h1>
+                <p class="hero-subtitle reveal">
+                    <span class="t-zh">在这个喧嚣的时代，我们想建一个纯粹属于文字爱好者的“歇脚处”。</span>
+                    <span class="t-en">In this clamorous era, we seek to build a sanctuary purely for lovers of the written word.</span>
+                </p>
+                <a href="#about" class="btn-primary reveal">
+                    <span class="t-zh">探索茶话会</span>
+                    <span class="t-en">Explore the Salon</span>
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="section">
+            <div class="container">
+                <div class="glass-card reveal">
+                    <h2 class="section-title"><span class="t-zh">关于墨花</span><span class="t-en">About Ink Blossom</span></h2>
+                    <div class="t-zh">这是一个纯粹的茶话会。无论你是长篇巨著的创作者，还是随笔记录的爱好者，这里都是你安心喝茶、畅所欲言的自留地。<br>在这里，我们欢迎一切关于文字的灵感碰撞：<br><strong>传统文学：</strong>各类小说、诗歌、散文、书评分享；<br><strong>泛文字创作：</strong>产品故事、影视剧本、游戏人设与世界观背景、文案策划、广告词等。<br>无论是构思精巧的推理悬疑、细腻入微的纯文学小说，还是深谙爆款逻辑的“盐选故事”……</div>
+                    <div class="t-en">This is a pure salon. Whether you craft epic novels or jot down casual essays, this is your private garden to sip tea and speak freely.<br>Here, we welcome all collisions of literary inspiration:<br><strong>Traditional Literature:</strong> Novels, poetry, prose, book reviews;<br><strong>Pan-Literary Creation:</strong> Product stories, screenplays, game lore, copywriting, slogans, etc.<br>Be it intricate mysteries, delicate pure literature, or viral "Salt Select" stories...</div>
+                </div>
+
+                <!-- 文字基建 · 开源社区 -->
+                <div class="glass-card reveal mt-lg">
+                    <h3 class="sub-title"><span class="t-zh">文字基建 · 开源社区</span><span class="t-en">Literary Infrastructure · Open-Source Community</span></h3>
+                    <p class="t-zh">除了日常的灵感分享，我们更希望这里是一个创作者的开源社区。如果你愿意，我们可以一起共创一些属于我们的“文字基建”：</p>
+                    <p class="t-en">Beyond everyday inspiration sharing, we hope this is an open-source community for creators. If you are willing, we can build our very own "literary infrastructure" together:</p>
+                    <ol class="build-list">
+                        <li>
+                            <span class="t-zh">共同整理一份《文学与网文发展史 / 流派演变》文档；</span>
+                            <span class="t-en">Jointly compile a document on the History of Literature &amp; Web Fiction / Genre Evolution;</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">拆解经典案例，共创小说分类与写作技巧库；</span>
+                            <span class="t-en">Dissect classic cases and co-create a library of novel genres and writing techniques;</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">分享你珍藏的灵感碎片、世界观设定模板；</span>
+                            <span class="t-en">Share your treasured inspiration fragments and worldbuilding templates;</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">收录和分享优质的文学创作学习资源——比如 B 站上值得反复看的写作技巧讲解、文学赏析视频、经典作品拆书解读等，让好内容不被算法埋没；</span>
+                            <span class="t-en">Collect and share quality learning resources — Bilibili writing tutorials, literary analysis videos, and classic deconstruction guides worth rewatching, so great content is never buried by algorithms;</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">整理一份"创作者工具箱"——好用的写作软件、素材网站、灵感生成方法、角色命名器、世界观搭建模板等实用资源合集；</span>
+                            <span class="t-en">Build a "Creator's Toolbox" — handy writing software, asset sites, idea generators, character name generators, and worldbuilding templates;</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">建立"写作避坑指南"——把自己踩过的坑、交过的学费沉淀下来，让后来的人少走弯路。</span>
+                            <span class="t-en">Establish a "Writing Pitfall Guide" — distill the mistakes and tuition we have paid, so those who follow tread more lightly.</span>
+                        </li>
+                        <li>
+                            <span class="t-zh">探讨"AI for Literature". 详见另一则公告<a href="ai.html">[注：进入 AI for Literature 页面]</a>。</span>
+                            <span class="t-en">Explore "AI for Literature" — see the separate announcement <a href="ai.html">[note: visit the AI for Literature page]</a>.</span>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="glass-card reveal mt-lg">
+                    <h3 class="sub-title"><span class="t-zh">关于共识</span><span class="t-en">Our Consensus</span></h3>
+                    <div class="consensus-list">
+                        <p class="t-zh">这里只有一群因文字而相聚的人。为了让这方小天地长久地安静下去，有几条共识想与大家共勉：</p>
+                        <p class="t-en">We are but a group gathered by words. To keep this space tranquil, we share these principles:</p>
+                        <ol class="rules-grid">
+                            <li><span class="t-zh"><strong>对事不对人。</strong> 讨论作品时，我们更鼓励就文本本身聊聊感受。比如"这段节奏稍显拖沓"是很好的反馈，但"你这人也就写这样了"就偏离了讨论本身。</span><span class="t-en"><strong>Critique the work, not the person.</strong> Focus on the text. "The pacing feels slow" is valid; "You'll never be a good writer" is not.</span></li>
+                            <li><span class="t-zh"><strong>尊重每一份表达。</strong> 无论题材、风格还是笔力如何，愿意将文字分享出来，本身就需要一份勇气。你可以不认同，但请给予基本的善意。</span><span class="t-en"><strong>Respect every expression.</strong> Sharing words takes courage. You may disagree, but please offer basic kindness.</span></li>
+                            <li><span class="t-zh"><strong>拒绝廉价的赞美。</strong> “写得太神了！大神指日可待” 无论褒贬，都对创作无益。提倡具体化反馈；不必为合群而违心夸赞，沉默比敷衍的掌声更值得尊重。</span><span class="t-en"><strong>Reject cheap praise.</strong> Empty flattery helps no one. We advocate specific feedback. Silence is more respectable than perfunctory applause.</span></li>
+                            <li><span class="t-zh"><strong>珍惜他人的创作成果。</strong> 群内分享的文档、模板与灵感，是大家的诚意。若觉得有用想借鉴，注明出处就好；直接搬运据为己有，会伤了那份愿意分享的心。</span><span class="t-en"><strong>Cherish others' creations.</strong> Always credit sources when borrowing. Plagiarism wounds the spirit of sharing.</span></li>
+                            <li><span class="t-zh"><strong>保持这里的纯粹。</strong> 茶话会是聊文字的地方。纯广告、拉票、求赞之类的内容，可能不太适合这里的氛围。</span><span class="t-en"><strong>Keep it pure.</strong> This is a place for words. Ads, vote-begging, and like-chasing do not belong here.</span></li>
+                            <li><span class="t-zh"><strong>闲聊随意。</strong> 茶余饭后聊点轻松的话题当然可以，不过涉及敏感、争议性太强的话题，或者刷屏式水群，还是稍微收一收。毕竟这里的主菜是文字，闲聊是甜点。</span><span class="t-en"><strong>Casual chat is welcome.</strong> But avoid sensitive topics or spamming. Words are the main course; chatter is merely dessert.</span></li>
+                            <li><span class="t-zh"><strong>分歧私下沟通。</strong> 若观点不合，建议移步私聊。公共空间留给灵感与对话，而非争执与围观。</span><span class="t-en"><strong>Resolve disagreements privately.</strong> Keep public spaces for inspiration and dialogue, not conflict.</span></li>
+                            <li><span class="t-zh"><strong>看见文字背后的“人”。</strong> 我们来自不同的年代、家庭与人生阶段。代际与背景的落差，不该成为傲慢的理由，而应是我们拓宽文学视野的窗口。</span><span class="t-en"><strong>See the person behind the words.</strong> Our generational and background gaps should widen our literary horizons, not fuel arrogance.</span></li>
+                            <li><span class="t-zh"><strong>其他有关网络安全和不适宜话题等暂不赘述，共同监督。</strong> 说到底，不过一句话：以你希望被对待的方式，去对待这里每一个人。</span><span class="t-en"><strong>Other safety guidelines apply.</strong> Ultimately: Treat everyone here as you wish to be treated.</span></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="glass-card vision-card reveal mt-lg">
+                    <h3 class="sub-title"><span class="t-zh">关于愿景</span><span class="t-en">Our Vision</span></h3>
+                    <div class="vision-content">
+                        <div class="t-zh">我们是一群随性的人，但随性不代表没有方向。在这个茶话会里，也许未来我们会顺势组建一个专业的编辑社；也许群里的某位作者会成长为知名的作家；也许大家会一起合作完成一个惊艳的企划……想象一下故事的终局：或许是大家一起唱歌，一起弹奏乐器，在旋律里落下片尾的字幕。一切皆有可能。但在那之前，我们只需安心喝杯茶，写点自己想写的东西，留下些值得被记住的痕迹。愿我们都能在这里，遇到懂你文字的人。</div>
+                        <div class="t-en">We are spontaneous, yet not directionless. Perhaps we'll form a professional editorial house; perhaps an author here will become renowned; perhaps we'll collaborate on a stunning project... Imagine the ending: singing together, playing instruments, fading out with credits in the melody. Anything is possible. But until then, let us simply sip tea, write what we wish, and leave traces worth remembering. May we all find those who understand our words here.</div>
+
+                        <blockquote class="vision-quote">
+                            <div class="t-zh">我是说，无论地球上的人们干什么，就像暴风雨的天气中，你在教室望向窗外昏暗的光线、摇曳的大树、漫天的灰尘，有人在教室里安静读书，有人在教堂里低头祈祷；有人和家人围坐闲聊，有人正被上司厉声斥责；有人在享受热水漫过身体的松弛，有人正经历着人生的至暗时刻。所有本该各自发生的人生，会因为某一本书、某一部电影、某一个共同的念头，忽然被拧成一束光。那些人是谁，曾经历过什么，忽然都不重要了。重要的是那一刻，我们站在了同一段故事里。</div>
+                            <div class="t-en">I mean, regardless of what people on Earth are doing—like in a stormy classroom where you gaze at dim light, swaying trees, and swirling dust; someone reads quietly, someone prays in church; families chat together, someone gets scolded by a boss; someone relaxes in hot water, someone endures their darkest hour. All these separate lives can suddenly converge into a single beam of light because of a book, a film, or a shared thought. Who they are or what they've endured ceases to matter. What matters is that, in that moment, we stand within the same story.</div>
+                            <cite class="t-zh">— kafeic 2026-8-24</cite>
+                            <cite class="t-en">— kafeic Aug 24, 2026</cite>
+                        </blockquote>
+
+                        <p class="footnote t-zh">[注1：笔者为ai相关技术从业者，如有技术和非技术问题欢迎探讨]</p>
+                        <p class="footnote t-en">[Note: The author works in AI; technical and non-technical discussions are welcome.]</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="wiki" class="section">
+            <div class="container">
+                <div class="glass-card center-text reveal">
+                    <h2 class="section-title"><span class="t-zh">WIKI · 敬请期待</span><span class="t-en">WIKI · Coming Soon</span></h2>
+                    <p class="t-zh">文字基建正在搭建中...</p>
+                    <p class="t-en">Building our literary infrastructure...</p>
+                    <div class="loader-dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="join" class="section">
+            <div class="container">
+                <div class="glass-card join-card reveal">
+                    <h2 class="section-title"><span class="t-zh">加入我们</span><span class="t-en">Join Us</span></h2>
+                    <p class="t-zh">扫描下方二维码，加入社群，与我们一同喝茶论道。</p>
+                    <p class="t-zh">（请注意辨别二维码的真伪，出于安全考虑可以直接搜索群号进行添加~）</p>
+                    <p class="t-en">Scan the QR code below to join our QQ group and share tea and words with us.</p>
+                    <div class="qr-placeholder">
+                        <img src="images/qrcode.png" alt="QQ群二维码" loading="lazy" decoding="async" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="image-placeholder" style="display:none;">QQ群二维码占位符<br>QR Code Placeholder</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 飞鱼  -->
+        <div id="jsi-flying-fish-container" class="fish-container"></div>
+
+    </main>
+
+    <footer class="glass-footer">
+        <div class="container footer-content">
+            <p class="copyright">© 2026 墨花·文学茶话会. All Rights Reserved.</p>
+            <p class="copyright">© Clover-Ink-Bloom.</p>
+            <div class="social-links">
+                <a href="#" aria-label="GitHub" class="social-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.29 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
+                <a href="#" aria-label="Feishu Docs" class="social-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h8v2H8V8zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"/></svg></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 黑胶唱片背景音乐播放器（../../assets/music/） -->
+    <div class="vinyl-player" id="vinyl-player">
+        <div class="vinyl-tonearm" aria-hidden="true"></div>
+        <button class="vinyl-disc" id="vinyl-disc" aria-label="播放/暂停背景音乐" aria-pressed="false">
+            <span class="vinyl-grooves" aria-hidden="true"></span>
+            <span class="vinyl-label">墨花</span>
+        </button>
+        <div class="vinyl-panel" id="vinyl-panel">
+            <div class="vinyl-track-name" id="vinyl-track-name">—</div>
+            <div class="vinyl-controls">
+                <button class="vinyl-btn" id="vinyl-prev" aria-label="上一首" title="上一首">⏮</button>
+                <button class="vinyl-btn vinyl-btn-play" id="vinyl-play" aria-label="播放/暂停" title="播放/暂停">▶</button>
+                <button class="vinyl-btn" id="vinyl-next" aria-label="下一首" title="下一首">⏭</button>
+            </div>
+            <!-- 音量默认 0.35 -->
+            <div class="vinyl-volume-row">
+                <span class="vinyl-vol-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 115 105">
+                      <rect x="10" y="50" width="10" height="20" rx="5" fill="var(--accent-color)"/>
+                      <rect x="28" y="35" width="10" height="50" rx="5" fill="var(--accent-color)"/>
+                      <rect x="46" y="20" width="10" height="80" rx="5" fill="var(--accent-color)"/>
+                      <rect x="64" y="30" width="10" height="60" rx="5" fill="var(--accent-color)"/>
+                      <rect x="82" y="40" width="10" height="40" rx="5" fill="var(--accent-color)"/>
+                      <rect x="100" y="48" width="10" height="24" rx="5" fill="var(--accent-color)"/>
+                    </svg>
+                </span>
+                <input type="range" id="vinyl-volume" class="vinyl-volume" min="0" max="1" step="0.05" aria-label="音量" title="音量">
+            </div>
+        </div>
+    </div>
+
+    <script src="js/player.js"></script>
+    <script>
+        // 确保 RENDERER 对象存在再调用
+        if (typeof RENDERER !== 'undefined') {
+            RENDERER.init();
+        }
+    </script>
+
+</body>
+</html>
