@@ -5,7 +5,13 @@
 
 ## Ink-Bloom
 
-**墨花·文学茶话会 | Ink Blossom Literary Salon**（即将开放）
+**墨花·文学茶话会 | Ink Blossom Literary Salon**
+![墨花社](https://kafeic.github.io/Clover-Ink-Bloom/)
+https://kafeic.github.io/Clover-Ink-Bloom/
+说明：网站由github pages搭建，因此不太稳定，
+你会看到我的雨滴背景和音乐加载较慢且字体风格不太美观，请忍住
+建议打开 Watt Toolkit 进行加速，或者个人正规科学手段，如果您能正常访问github
+那么相信您还是有实力在极短的时间内加载出本页面[doge]
 
 ## 预览
 
